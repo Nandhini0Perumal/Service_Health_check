@@ -1,0 +1,45 @@
+---
+- hosts: win
+  gather_facts: no
+  connection: local
+
+  tasks:
+  - name: Loading and connecting to the application
+    win_command:  "ScdSvcCtl.exe {{item}}"
+    args:
+      chdir: "E:\SCDAZURESIT\Bin"
+    with_items:
+      - maintenance begin
+      - automation load
+  - name: Getting the service status
+    win_command:  "ScdSvcCtl.exe service list"
+    args:
+      chdir: "E:\SCDAZURESIT\Bin"
+    register: service_status
+
+  - name: Adding output to temp file
+    copy:
+      content: "{{service_status.stdout}}"
+      dest: "/tmp/service_health_check.txt"
+    delegate_to: localhost
+
+  - set_fact:
+      service_from_input_file: "{{ lookup('file', './input.txt').splitlines() }}"
+    register: output
+    delegate_to: localhost
+    
+  - name: Check whether the services are online or offline status
+    command: grep  {{item}} /tmp/service_health_check.txt
+    loop: "{{service_from_input_file}}"
+    register: validated_services 
+    delegate_to: localhost
+    ignore_errors: yes
+  
+ # - debug: var=validated_services.results
+  
+  - name: Appending to a list to attach via mail
+    set_fact:
+      validated_service_list: "{{ validated_services.results | map(attribute='stdout') | list }}"
+    delegate_to: localhost
+
+  - debug: var=validated_service_list
