@@ -7,14 +7,14 @@
   - name: Loading and connecting to the application
     win_command:  "ScdSvcCtl.exe {{item}}"
     args:
-      chdir: "E:\SCDAZURESIT\Bin"
+      chdir: E:\SCDAZURESIT\Bin
     with_items:
       - maintenance begin
       - automation load
   - name: Getting the service status
     win_command:  "ScdSvcCtl.exe service list"
     args:
-      chdir: "E:\SCDAZURESIT\Bin"
+      chdir: E:\SCDAZURESIT\Bin
     register: service_status
 
   - name: Adding output to temp file
