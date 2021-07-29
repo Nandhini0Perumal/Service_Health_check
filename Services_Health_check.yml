@@ -43,3 +43,22 @@
     delegate_to: localhost
 
   - debug: var=validated_service_list
+  
+  - name: Output for attaching in mail
+    copy:
+      content: "{{validated_service_list}}"
+      dest: "/tmp/service_health_check_status.txt"
+    delegate_to: localhost
+    
+  - name: Sending mail to application team
+    mail:
+      host: smtp.xxx.xxxx.net
+      port: 25
+      from: <noreply@ansibletower.com>
+      to: nandhiniperumalxx@gmail.com, dl-tech-support@xxx.com
+      subject: "Service Status Report"
+      subtype: html
+      body: "{{ lookup('template', mail_body.j2) }}"
+      attach:
+      - /tmp/service_health_check_status.txt
+    delegate_to: localhost
